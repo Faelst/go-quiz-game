@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"time"
 )
 
 type GameState struct {
@@ -92,6 +93,38 @@ func (g *GameState) Run() {
 	fmt.Printf("Quiz over! Your final score is %d out of %d.\n", g.Score, len(g.Questions))
 }
 
+func (g *GameState) CalculateScore() string {
+	if g.Score >= 20 {
+		return "Passed"
+	}
+	return "Failed"
+}
+
+func (g *GameState) GameCountDown() {
+	seconds := 15
+	currentQuestion := 0
+
+	fmt.Println("⏳ Iniciando contagem regressiva:")
+
+	for i := seconds; i > 0; i-- {
+		if i == 10 {
+			fmt.Println("⚠️  Atenção! Faltam 10 segundos!")
+		} else {
+			fmt.Printf("⏳ %d segundos restantes...\n", i)
+		}
+
+		time.Sleep(1 * time.Second)
+
+		if currentQuestion != g.CurrentQuestion {
+			currentQuestion = g.CurrentQuestion
+			i = seconds + 1
+		}
+	}
+
+	fmt.Println("🚀 Tempo esgotado!")
+	os.Exit(0)
+}
+
 func toInt(s string) int {
 	var i int
 	fmt.Sscanf(s, "%d", &i)
@@ -100,7 +133,9 @@ func toInt(s string) int {
 
 func main() {
 	game1 := &GameState{}
+	go game1.GameCountDown()
 	go game1.loadCsv()
 	game1.Initialize()
 	game1.Run()
+	fmt.Println(game1.CalculateScore())
 }
